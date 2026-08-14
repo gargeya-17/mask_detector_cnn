@@ -13,7 +13,7 @@ st.write("Click 'Start' to activate your webcam. The model will detect if you ar
 
 @st.cache_resource
 def load_mask_model():
-    return load_model("mask_detector_model.h5")
+    return load_model("mask_detection_MobileNetV2.h5")
 
 @st.cache_resource
 def load_cascade():
