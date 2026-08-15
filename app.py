@@ -8,7 +8,6 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 # --- 1. Setup Streamlit Page ---
 st.set_page_config(page_title="Mask Detector", layout="centered")
 st.title("📸 Snapshot Face Mask Detection")
-st.write("Click the button below to take a photo, and the AI will check if you are wearing a mask.")
 
 # --- 2. Load the trained model ---
 @st.cache_resource
