@@ -11,13 +11,19 @@ st.set_page_config(page_title="Real-Time Mask Detector", layout="centered")
 st.title("😷 Real-Time Face Mask Detection")
 st.write("Click 'Start' and grant camera permissions to detect face masks in real-time.")
 
-# --- 2. Load the trained model ---
+# --- 2. Load and Warm-Up the Model ---
 @st.cache_resource
-def load_mask_model():
-    # Make sure this exactly matches your filename
-    return load_model('mask_detection_MobileNetV2.h5')
+def load_and_warmup_model():
+    model = load_model('mask_detection_MobileNetV2.h5')
+    
+    # WARM-UP: Run a dummy prediction in the main thread to initialize the TF graph.
+    # This completely prevents the Segmentation Fault in the background thread.
+    dummy_frame = np.zeros((1, 224, 224, 3), dtype=np.float32)
+    model(dummy_frame, training=False)
+    
+    return model
 
-model = load_mask_model()
+model = load_and_warmup_model()
 
 # --- 3. WebRTC Video Processing ---
 def video_frame_callback(frame: av.VideoFrame) -> av.VideoFrame:
@@ -30,8 +36,7 @@ def video_frame_callback(frame: av.VideoFrame) -> av.VideoFrame:
     expanded_frame = np.expand_dims(resized_frame, axis=0)   # Expand dims for batch size
     processed_frame = preprocess_input(expanded_frame)       # Apply MobileNetV2 preprocessing
     
-    # --- CRITICAL FIX ---
-    # Use model(..., training=False) instead of model.predict() for thread safety
+    # Make Prediction using the pre-warmed, thread-safe model call
     prediction_tensor = model(processed_frame, training=False)
     prediction = prediction_tensor.numpy()[0][0]
     
